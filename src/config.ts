@@ -17,6 +17,9 @@ export const INTENSITY_LEVELS = [
   "urgent, actively looking for any fix",
 ];
 
+// One-word names for the same levels, shown beside the meter in recording mode.
+export const INTENSITY_SHORT = ["MILD", "RECURRING", "COSTLY", "URGENT"];
+
 // Sent with state { subreddit, title, body }. For a comment, `title` is the post's title
 // and `body` is the comment.
 export const QUESTIONS = {

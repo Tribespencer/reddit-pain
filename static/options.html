@@ -14,6 +14,8 @@
       h1 { font-size: 20px; }
       h2 { font-size: 15px; margin-top: 32px; }
       label { display: block; margin: 14px 0 4px; font-weight: 600; }
+      label.check { font-weight: 400; }
+      label.check input { width: auto; margin-right: 6px; }
       input { width: 100%; max-width: 480px; box-sizing: border-box; padding: 8px 10px; font: inherit; border: 1px solid #c8ccd0; border-radius: 6px; }
       button { margin: 14px 8px 0 0; padding: 8px 14px; font: inherit; border: 0; border-radius: 6px; cursor: pointer; color: #fff; background: #d93900; }
       button.secondary { color: #1c1e21; background: #e4e6eb; }
@@ -39,6 +41,14 @@
     <button id="save">Save</button>
     <button id="test" class="secondary">Test Jev connection</button>
     <div id="result"></div>
+
+    <h2>Recording mode</h2>
+    <label class="check"><input id="recording" type="checkbox" /> Draw highlights for filming</label>
+    <div class="hint">
+      Bigger boxes and tags, a hit counter, dimmed misses, and an intensity meter. Each item is scanned and judged as
+      it scrolls a third of the way up the screen, and stored labels replay the animation, so a refresh gives a
+      repeatable take with no new Jev calls. Applies straight away; turn it off for everyday browsing.
+    </div>
 
     <h2>Last labelled items</h2>
     <div id="count" class="hint"></div>

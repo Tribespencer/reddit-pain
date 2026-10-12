@@ -7,11 +7,13 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const apiKey = $<HTMLInputElement>("apiKey");
 const model = $<HTMLInputElement>("model");
 const result = $<HTMLDivElement>("result");
+const recording = $<HTMLInputElement>("recording");
 
 async function load() {
-  const stored = await chrome.storage.local.get(["apiKey", "model"]);
+  const stored = await chrome.storage.local.get(["apiKey", "model", "recording"]);
   apiKey.value = (stored.apiKey as string) ?? "";
   model.value = (stored.model as string) ?? "";
+  recording.checked = Boolean(stored.recording);
   await renderLog();
 }
 
@@ -69,6 +71,9 @@ $("test").onclick = async () => {
     `Sample post labelled as: ${JSON.stringify(res.labels, null, 2)}`;
   if (!model.value.trim()) model.placeholder = `${DEFAULT_MODEL} (currently ${res.model})`;
 };
+
+// Open reddit.com tabs pick the change up from storage.
+recording.onchange = () => chrome.storage.local.set({ recording: recording.checked });
 
 $("clear").onclick = async () => {
   if (!confirm("Delete every stored item and label? They will be sent to Jev again when next seen.")) return;

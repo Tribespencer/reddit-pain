@@ -12,8 +12,9 @@ const REDDIT = "https://www.reddit.com";
 
 // Loads the built extension into a fresh browser profile, with www.reddit.com and
 // api.typesafe.ai both resolved to the local mock server.
-const test = base.extend<{ apiKey: string; mock: Mock; context: BrowserContext; worker: Worker; page: Page }>({
+const test = base.extend<{ apiKey: string; recording: boolean; mock: Mock; context: BrowserContext; worker: Worker; page: Page }>({
   apiKey: ["test-key", { option: true }],
+  recording: [false, { option: true }],
   mock: async ({}, use) => {
     const mock = await startMock();
     await use(mock);
@@ -38,8 +39,9 @@ const test = base.extend<{ apiKey: string; mock: Mock; context: BrowserContext; 
   worker: async ({ context }, use) => {
     await use(context.serviceWorkers()[0] ?? (await context.waitForEvent("serviceworker")));
   },
-  page: async ({ context, worker, apiKey }, use) => {
+  page: async ({ context, worker, apiKey, recording }, use) => {
     if (apiKey) await worker.evaluate((key) => chrome.storage.local.set({ apiKey: key }), apiKey);
+    if (recording) await worker.evaluate(() => chrome.storage.local.set({ recording: true }));
     await use(await context.newPage());
   },
 });
@@ -183,4 +185,85 @@ test("smoke-test cap: Jev is not called for more items than the cap", async ({ p
   await page.waitForTimeout(1500);
   expect(mock.attempts).toBe(ITEM_CAP);
   await expect(page.locator("#rp-status")).toHaveCount(0);
+});
+
+test.describe("recording mode", () => {
+  test.use({ recording: true });
+
+  test("counts hits, dims misses, and draws the meter and corner brackets", async ({ page, mock }) => {
+    await page.goto(`${REDDIT}/r/test/`);
+    await settled(page, mock, 6);
+    await expect(page.locator("html")).toHaveClass(/rp-recording/);
+
+    // Three posts ask for a product and two describe a pain; one post does both.
+    await expect(postFrame(page, "edge")).toBeVisible();
+    await expect(page.locator("#rp-counter .rp-count-asks b")).toHaveText("3");
+    await expect(page.locator("#rp-counter .rp-count-pain b")).toHaveText("2");
+
+    // Misses are dimmed, hits are not, and the promoted post is left alone.
+    await expect(page.locator("#t3_neg")).toHaveCSS("opacity", "0.3");
+    await expect(page.locator("#t3_long")).toHaveCSS("opacity", "0.3");
+    await expect(page.locator("#t3_ask")).toHaveCSS("opacity", "1");
+    await expect(page.locator("shreddit-ad-post")).toHaveCSS("opacity", "1");
+
+    // An intensity of 2.2 is the third level of four, and 2.7 rounds up to the top one.
+    const chip = postFrame(page, "pain").locator(".rp-chip");
+    await expect(chip).toHaveAttribute("data-label", "COSTLY");
+    await expect(chip.locator(".rp-meter i.rp-on")).toHaveCount(3);
+    await expect(chip.locator(".rp-meter")).toBeVisible();
+    await expect(chip.locator(".rp-chip-text")).toBeHidden();
+    await expect(postFrame(page, "both").locator(".rp-chip")).toHaveAttribute("data-label", "URGENT");
+    await expect(postFrame(page, "both").locator(".rp-meter i.rp-on")).toHaveCount(4);
+
+    await expect(postFrame(page, "ask").locator(".rp-corners")).toBeVisible();
+    expect(await postFrame(page, "ask").evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe("4px");
+  });
+
+  test("reload replays the scan and lock-on for stored labels, with no second Jev call", async ({ page, mock }) => {
+    await page.goto(`${REDDIT}/r/test/`);
+    await settled(page, mock, 6);
+    await expect(postFrame(page, "ask")).toBeVisible();
+    await expect(page.locator(".rp-enter")).toHaveCount(0);
+
+    await page.reload();
+    await expect(page.locator("#t3_ask > .rp-frame.rp-scanning")).toHaveCount(1);
+    await expect(postFrame(page, "ask")).toHaveClass(/rp-enter/);
+    await expect(page.locator("#rp-counter .rp-count-asks b")).toHaveText("3");
+    await expect(page.locator(".rp-enter")).toHaveCount(0);
+    expect(mock.attempts).toBe(6);
+  });
+
+  test("holds a verdict until the item is above the cue line", async ({ page, mock }) => {
+    await page.setViewportSize({ width: 1280, height: 300 });
+    await page.goto(`${REDDIT}/r/test/`);
+    const both = page.locator("#t3_both");
+
+    // Only its top edge is on screen: it is sent to Jev, but nothing is drawn yet.
+    await both.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - window.innerHeight + 20));
+    await expect.poll(() => mock.calls.some((c) => c.title.includes("time zones"))).toBe(true);
+    await page.waitForTimeout(1500);
+    await expect(page.locator("#t3_both > .rp-frame")).toHaveCount(0);
+    await expect(page.locator("#rp-counter .rp-count-pain b")).not.toHaveText("2");
+
+    await both.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 40));
+    await expect(postFrame(page, "both")).toBeVisible();
+  });
+
+  test("turning it off on the settings page restores the everyday look", async ({ page, mock, context, worker }) => {
+    await page.goto(`${REDDIT}/r/test/`);
+    await settled(page, mock, 6);
+    await expect(page.locator("#t3_neg")).toHaveCSS("opacity", "0.3");
+
+    const options = await context.newPage();
+    await options.goto(`chrome-extension://${new URL(worker.url()).host}/options.html`);
+    await expect(options.locator("#recording")).toBeChecked();
+    await options.locator("#recording").uncheck();
+
+    await expect(page.locator("html")).not.toHaveClass(/rp-recording/);
+    await expect(page.locator("#rp-counter")).toHaveCount(0);
+    await expect(page.locator("[data-rp-miss]")).toHaveCount(0);
+    await expect(page.locator("#t3_neg")).toHaveCSS("opacity", "1");
+    await expect(postFrame(page, "pain").locator(".rp-chip")).toHaveText("pain intensity: costing them real time or money · 2.2/3");
+    await expect(postFrame(page, "pain").locator(".rp-meter")).toBeHidden();
+  });
 });
