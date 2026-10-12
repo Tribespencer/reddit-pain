@@ -19,7 +19,7 @@ Reddit Pain does not come with a key. You need a [TypeSafe](https://typesafe.ai)
 Requires Chrome 120 or newer and Node.js 18 or newer.
 
 ```bash
-git clone <this repo's URL>
+git clone https://github.com/Tribespencer/reddit-pain.git
 cd reddit-pain
 npm install
 npm run build
