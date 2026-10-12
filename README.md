@@ -16,7 +16,21 @@ Reddit Pain does not come with a key. You need a [TypeSafe](https://typesafe.ai)
 
 ## Install
 
-Requires Chrome 120 or newer and Node.js 18 or newer.
+Requires Chrome 120 or newer.
+
+1. Download [reddit-pain.zip](https://github.com/Tribespencer/reddit-pain/releases/latest/download/reddit-pain.zip) and unzip it. Keep the folder somewhere permanent; Chrome loads the extension from it every time.
+2. Open `chrome://extensions`.
+3. Turn on **Developer mode** (top right).
+4. Click **Load unpacked** and choose the unzipped folder.
+5. Click the Reddit Pain toolbar icon to open its settings.
+6. Paste your TypeSafe API key, click **Test Jev connection**, then **Save**.
+7. Open or refresh a reddit.com tab and scroll.
+
+To update, download the new zip, replace the folder's contents, and click the reload button for Reddit Pain on `chrome://extensions`.
+
+### Build from source
+
+Requires Node.js 18 or newer.
 
 ```bash
 git clone https://github.com/Tribespencer/reddit-pain.git
@@ -25,16 +39,7 @@ npm install
 npm run build
 ```
 
-Then load it into Chrome:
-
-1. Open `chrome://extensions`.
-2. Turn on **Developer mode** (top right).
-3. Click **Load unpacked** and choose the `dist` folder.
-4. Click the Reddit Pain toolbar icon to open its settings.
-5. Paste your TypeSafe API key, click **Test Jev connection**, then **Save**.
-6. Open or refresh a reddit.com tab and scroll.
-
-To update, pull the latest code, run `npm run build` again, and click the reload button for Reddit Pain on `chrome://extensions`.
+Then follow steps 2 to 7 above, choosing the `dist` folder in step 4. `npm run zip` builds the same zip that is attached to each release.
 
 ## What it sends and what it stores
 
