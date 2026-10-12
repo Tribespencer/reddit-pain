@@ -75,13 +75,14 @@ The settings page shows the model, response time and input tokens for a test cal
 For filming the extension. Turn on **Draw highlights for filming** on the settings page; open Reddit tabs switch straight away.
 
 - Boxes, tags and glow are larger, with corner brackets that close in on each hit.
-- Posts and comments that are not hits are dimmed.
-- A counter under Reddit's header keeps a running total of hits shown on the page.
+- Posts and comments that are not hits are dimmed, and so are promoted posts.
+- A pain is boxed only when it is costly or urgent; milder ones count as misses. `RECORDING_MIN_PAIN_LEVEL` in [src/config.ts](src/config.ts) sets the bar.
+- A counter in Reddit's header, over the search box, keeps a running total of hits shown on the page.
 - Pain intensity is drawn as a four-segment meter with a one-word level. The top level is red.
 - Each item is scanned and judged when it scrolls a third of the way up the screen, not at the bottom edge.
 - Stored labels replay the scan and lock-on. Scroll a page once to label it, refresh, and the second pass plays the same animations with no new Jev calls.
 
-The labels are the same ones Jev returned; only the drawing and timing change.
+The labels are the same ones Jev returned. Apart from leaving milder pains unboxed, only the drawing and timing change.
 
 ## Settings you can change
 

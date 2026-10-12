@@ -36,6 +36,8 @@ const ANSWERS: [string, number, number, number][] = [
   ["Curious what everyone uses", 0.8, 0.3, 1.0],
   ["spreadsheet and it is a mess", 0.12, 0.9, 1.9],
   ["tool that does this automatically", 0.91, 0.2, 0.6],
+  ["slightly annoying", 0.1, 0.9, 0.6],
+  ["small gripe", 0.9, 0.8, 1.2],
 ];
 const NEGATIVE = [0.04, 0.06, 0.1];
 
@@ -78,6 +80,15 @@ function feedPage(context: string) {
 
 function manyPage() {
   const posts = Array.from({ length: 25 }, (_, i) => feedPost(`many${i}`, `Ordinary post number ${i}`, "Nothing to see."));
+  return page(`<shreddit-feed>${posts.join("\n")}</shreddit-feed>`);
+}
+
+// Two pains below recording mode's bar: one on its own, one in a post that also asks for a product.
+function mildPage() {
+  const posts = [
+    feedPost("mild", "The export button is slightly annoying", "It is two clicks instead of one."),
+    feedPost("askmild", "Any app for this small gripe?", "Renaming files one at a time gets old."),
+  ];
   return page(`<shreddit-feed>${posts.join("\n")}</shreddit-feed>`);
 }
 
@@ -159,6 +170,7 @@ const PAGES: Record<string, () => string> = {
   "/": () => feedPage("AggregateFeed"),
   "/r/test/": () => feedPage("SubredditFeed"),
   "/r/many/": manyPage,
+  "/r/mild/": mildPage,
   "/r/test/comments/pdp/slug/": commentsPage,
 };
 

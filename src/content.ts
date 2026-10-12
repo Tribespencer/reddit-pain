@@ -1,4 +1,4 @@
-import { INTENSITY_LEVELS, INTENSITY_SHORT, THRESHOLD } from "./config";
+import { INTENSITY_LEVELS, INTENSITY_SHORT, RECORDING_MIN_PAIN_LEVEL, THRESHOLD } from "./config";
 import { extractItem, ITEM_SELECTOR, itemIdOf, ownHeightOf, visibilityTargetOf } from "./extract";
 import type { LabelResponse, Labels, Message } from "./types";
 
@@ -121,8 +121,10 @@ function count(id: string, asks: boolean, pain: boolean) {
 
 // Draws the box for a hit, or leaves a miss alone. `animate` plays the lock-on animation.
 function verdict(el: Element, l: Labels, animate: boolean) {
+  const level = levelOf(l.painIntensity);
   const asks = l.asksForProduct >= THRESHOLD;
-  const pain = l.hasPain >= THRESHOLD;
+  // Recording mode leaves the milder pains unboxed.
+  const pain = l.hasPain >= THRESHOLD && (!recording || level >= RECORDING_MIN_PAIN_LEVEL);
   // Recording mode dims misses; a comment's own text is dimmed, not its replies.
   const dimmed = visibilityTargetOf(el);
   if (!asks && !pain) {
@@ -149,7 +151,6 @@ function verdict(el: Element, l: Labels, animate: boolean) {
   if (pain) tag("PAIN", "pain");
 
   // The chip holds the wording and a meter; the stylesheet shows one or the other.
-  const level = levelOf(l.painIntensity);
   const chip = document.createElement("div");
   chip.className = "rp-chip";
   chip.dataset.level = String(level);
@@ -214,6 +215,10 @@ function setRecording(on: boolean) {
   recording = on;
   document.documentElement.classList.toggle("rp-recording", on);
   if (!on) for (const el of document.querySelectorAll("[data-rp-miss]")) el.removeAttribute("data-rp-miss");
+  // The two modes box different items, so every box is redrawn and the count starts again.
+  for (const el of document.querySelectorAll(ITEM_SELECTOR)) clearFrame(el);
+  counted.clear();
+  totals.asks = totals.pain = 0;
   renderCounter();
   renderKnown();
 }

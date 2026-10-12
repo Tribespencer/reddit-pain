@@ -20,6 +20,10 @@ export const INTENSITY_LEVELS = [
 // One-word names for the same levels, shown beside the meter in recording mode.
 export const INTENSITY_SHORT = ["MILD", "RECURRING", "COSTLY", "URGENT"];
 
+// Recording mode boxes a pain only at this level or above (an index into INTENSITY_LEVELS),
+// so a feed of mild complaints does not light up from top to bottom.
+export const RECORDING_MIN_PAIN_LEVEL = 2;
+
 // Sent with state { subreddit, title, body }. For a comment, `title` is the post's title
 // and `body` is the comment.
 export const QUESTIONS = {

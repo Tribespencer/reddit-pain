@@ -200,11 +200,17 @@ test.describe("recording mode", () => {
     await expect(page.locator("#rp-counter .rp-count-asks b")).toHaveText("3");
     await expect(page.locator("#rp-counter .rp-count-pain b")).toHaveText("2");
 
-    // Misses are dimmed, hits are not, and the promoted post is left alone.
+    // Misses and the promoted post are dimmed; hits are not. The promoted post is still not sent.
     await expect(page.locator("#t3_neg")).toHaveCSS("opacity", "0.3");
     await expect(page.locator("#t3_long")).toHaveCSS("opacity", "0.3");
     await expect(page.locator("#t3_ask")).toHaveCSS("opacity", "1");
-    await expect(page.locator("shreddit-ad-post")).toHaveCSS("opacity", "1");
+    await expect(page.locator("shreddit-ad-post")).toHaveCSS("opacity", "0.3");
+    expect(mock.calls.map((c) => c.title)).not.toContain("Cash back season");
+
+    // The counter sits inside the 56px header strip.
+    const counter = (await page.locator("#rp-counter").boundingBox())!;
+    expect(counter.y).toBeGreaterThanOrEqual(0);
+    expect(counter.y + counter.height).toBeLessThanOrEqual(56);
 
     // An intensity of 2.2 is the third level of four, and 2.7 rounds up to the top one.
     const chip = postFrame(page, "pain").locator(".rp-chip");
@@ -247,6 +253,35 @@ test.describe("recording mode", () => {
 
     await both.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 40));
     await expect(postFrame(page, "both")).toBeVisible();
+  });
+
+  test("boxes a pain only when it is costly or urgent", async ({ page, mock, worker }) => {
+    await page.goto(`${REDDIT}/r/mild/`);
+    await settled(page, mock, 2);
+
+    // A mild pain on its own is a miss. Beside a product ask, only the ask is tagged and counted.
+    await expect(postFrame(page, "askmild")).toBeVisible();
+    expect(await tagsOf(postFrame(page, "askmild"))).toEqual(["ASKING FOR PRODUCT"]);
+    await expect(page.locator("#t3_mild > .rp-frame")).toHaveCount(0);
+    await expect(page.locator("#t3_mild")).toHaveCSS("opacity", "0.3");
+    await expect(page.locator("#rp-counter .rp-count-asks b")).toHaveText("1");
+    await expect(page.locator("#rp-counter .rp-count-pain b")).toHaveText("0");
+
+    // Everyday mode boxes both pains.
+    await worker.evaluate(() => chrome.storage.local.set({ recording: false }));
+    await expect(postFrame(page, "mild")).toBeVisible();
+    expect(await tagsOf(postFrame(page, "mild"))).toEqual(["PAIN"]);
+    expect(await tagsOf(postFrame(page, "askmild"))).toEqual(["ASKING FOR PRODUCT", "PAIN"]);
+    await expect(page.locator("#t3_mild")).toHaveCSS("opacity", "1");
+
+    // Back in recording mode the mild pain is unboxed again and the count starts over.
+    await worker.evaluate(() => chrome.storage.local.set({ recording: true }));
+    await expect(page.locator("#t3_mild")).toHaveCSS("opacity", "0.3");
+    await expect(page.locator("#t3_mild > .rp-frame")).toHaveCount(0);
+    expect(await tagsOf(postFrame(page, "askmild"))).toEqual(["ASKING FOR PRODUCT"]);
+    await expect(page.locator("#rp-counter .rp-count-asks b")).toHaveText("1");
+    await expect(page.locator("#rp-counter .rp-count-pain b")).toHaveText("0");
+    expect(mock.attempts).toBe(2);
   });
 
   test("turning it off on the settings page restores the everyday look", async ({ page, mock, context, worker }) => {
