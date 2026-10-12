@@ -1,0 +1,172 @@
+/* Box drawn around a labelled post or comment. It is a child of the item's own element;
+   in a post it lands in the default slot, which sits at the top level of the shadow tree. */
+shreddit-post:has(> .rp-frame),
+shreddit-comment:has(> .rp-frame) {
+  position: relative;
+}
+.rp-frame {
+  --rp-color: #16a34a;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  pointer-events: none;
+  border: 2px solid var(--rp-color);
+  border-radius: 12px;
+}
+.rp-frame[data-kind="pain"] {
+  --rp-color: #f59e0b;
+}
+/* A comment's box starts a little outside its text, so the tag clears the author line. */
+shreddit-comment > .rp-frame {
+  top: -6px;
+  left: -8px;
+}
+/* It stops above the comment's replies; the script measures where they start. */
+shreddit-comment > .rp-frame.rp-own {
+  bottom: auto;
+  height: calc(var(--rp-own-height) + 6px);
+}
+
+/* Tags sit on the top edge, near the left corner, so they cover as little as possible. */
+.rp-tags {
+  position: absolute;
+  top: -1px;
+  left: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  transform: translateY(-50%);
+}
+.rp-tag {
+  padding: 1px 8px 2px;
+  border-radius: 9px;
+  font: 700 10px/14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.rp-tag-asks {
+  color: #fff;
+  background: #15803d;
+}
+.rp-tag-pain {
+  color: #231400;
+  background: #f59e0b;
+}
+
+/* Pain intensity, on the bottom edge. It sits at the right, clear of the vote and reply buttons. */
+.rp-chip {
+  position: absolute;
+  bottom: -1px;
+  right: 10px;
+  padding: 1px 8px 2px;
+  border: 1px solid var(--rp-color);
+  border-radius: 9px;
+  font: 500 11px/14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  white-space: nowrap;
+  color: #f2f4f5;
+  background: #1f2428;
+  transform: translateY(50%);
+}
+
+/* While waiting for Jev: no border yet, a scan line sweeps down the item. */
+.rp-frame.rp-scanning {
+  border-color: transparent;
+  overflow: hidden;
+}
+.rp-frame.rp-scanning::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -48px;
+  height: 48px;
+  background: linear-gradient(to bottom, transparent, rgba(29, 155, 240, 0.18));
+  border-bottom: 2px solid rgb(29, 155, 240);
+  animation: rp-sweep 800ms linear infinite;
+}
+
+/* When the label arrives: the box snaps in, glows once, and the tags and chip slide in. */
+.rp-frame.rp-enter {
+  animation:
+    rp-lock 450ms cubic-bezier(0.2, 0.9, 0.3, 1.3) both,
+    rp-glow 1300ms ease-out 150ms both;
+}
+.rp-frame.rp-enter .rp-tag,
+.rp-frame.rp-enter .rp-chip {
+  animation: rp-slide-in 320ms ease-out 280ms both;
+}
+
+@keyframes rp-sweep {
+  to {
+    top: 100%;
+  }
+}
+@keyframes rp-lock {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes rp-glow {
+  from {
+    box-shadow: inset 0 0 28px 4px color-mix(in srgb, var(--rp-color) 55%, transparent);
+  }
+  to {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+}
+@keyframes rp-slide-in {
+  from {
+    opacity: 0;
+    translate: -10px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-frame,
+  .rp-frame .rp-tag,
+  .rp-frame .rp-chip,
+  .rp-frame::after {
+    animation: none !important;
+  }
+}
+
+#rp-status {
+  position: fixed;
+  right: 16px;
+  bottom: 24px;
+  z-index: 9999;
+  max-width: 280px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font: 12px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #e7e9ea;
+  background: rgba(21, 24, 28, 0.94);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+#rp-status b {
+  display: block;
+  margin-bottom: 2px;
+}
+#rp-status .rp-err {
+  color: #ff8a8a;
+}
+#rp-status button {
+  margin-top: 6px;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  cursor: pointer;
+  color: #fff;
+  background: #d93900;
+}

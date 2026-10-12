@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Reddit Pain settings</title>
+    <style>
+      body {
+        max-width: 960px;
+        margin: 40px auto;
+        padding: 0 20px;
+        font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #1c1e21;
+      }
+      h1 { font-size: 20px; }
+      h2 { font-size: 15px; margin-top: 32px; }
+      label { display: block; margin: 14px 0 4px; font-weight: 600; }
+      input { width: 100%; max-width: 480px; box-sizing: border-box; padding: 8px 10px; font: inherit; border: 1px solid #c8ccd0; border-radius: 6px; }
+      button { margin: 14px 8px 0 0; padding: 8px 14px; font: inherit; border: 0; border-radius: 6px; cursor: pointer; color: #fff; background: #d93900; }
+      button.secondary { color: #1c1e21; background: #e4e6eb; }
+      #result { margin-top: 14px; padding: 10px 12px; border-radius: 6px; background: #f0f2f5; white-space: pre-wrap; font: 12px/1.5 ui-monospace, Menlo, monospace; }
+      #result:empty { display: none; }
+      table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 12px; }
+      th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e4e6eb; vertical-align: top; }
+      tr.hit td:nth-child(4) { font-weight: 700; }
+      .hint { color: #65676b; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Reddit Pain</h1>
+
+    <label for="apiKey">TypeSafe API key</label>
+    <input id="apiKey" type="password" autocomplete="off" placeholder="sk-..." />
+    <div class="hint">Stored only in this browser's extension storage. Sent only to api.typesafe.ai.</div>
+
+    <label for="model">Jev model</label>
+    <input id="model" type="text" placeholder="jev-latest" />
+    <div class="hint">Use a specific version (for example the one shown after a test) to keep labels consistent.</div>
+
+    <button id="save">Save</button>
+    <button id="test" class="secondary">Test Jev connection</button>
+    <div id="result"></div>
+
+    <h2>Last labelled items</h2>
+    <div id="count" class="hint"></div>
+    <button id="clear" class="secondary">Delete all stored items</button>
+    <table>
+      <thead>
+        <tr><th>Where</th><th>Title</th><th>Body</th><th>Tags</th><th>Asks</th><th>Pain</th><th>Intensity</th></tr>
+      </thead>
+      <tbody id="log"></tbody>
+    </table>
+
+    <script src="options.js"></script>
+  </body>
+</html>

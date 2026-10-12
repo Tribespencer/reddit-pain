@@ -1,0 +1,19 @@
+{
+  "name": "reddit-pain",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node build.mjs && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/chrome": "^0.0.287",
+    "@types/node": "^26.6.4",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0"
+  }
+}
