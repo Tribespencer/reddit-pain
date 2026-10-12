@@ -12,7 +12,7 @@ Everything else is left untouched.
 
 ## You need your own API key
 
-Reddit Pain does not come with a key. You need a TypeSafe API key with access to the Jev model, and **every labelled item is one API call billed to your key**. See [Cost](#cost) before a long scrolling session.
+Reddit Pain does not come with a key. You need a [TypeSafe](https://typesafe.ai) API key with access to the Jev model, and **every labelled item is one API call billed to your key**. See [Cost](#cost) before a long scrolling session.
 
 ## Install
 
